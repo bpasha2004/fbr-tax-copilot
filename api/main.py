@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from api.routes.health import router as health_router
@@ -98,10 +98,15 @@ def favicon():
 
 
 # ── SPA Frontend Mounting ───────────────────────────────────────────────────
-# Point directly to the Lovable React build directory
-frontend_dist = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "frontend", ".output", "public"
-)
+frontend_base = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+possible_dists = [
+    os.path.join(frontend_base, ".output", "public"),
+    os.path.join(frontend_base, "dist"),
+    os.path.join(frontend_base, "build"),
+    os.path.join(frontend_base, "public"),
+]
+
+frontend_dist = next((d for d in possible_dists if os.path.exists(d)), possible_dists[0])
 
 if os.path.exists(os.path.join(frontend_dist, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
@@ -110,16 +115,28 @@ if os.path.exists(os.path.join(frontend_dist, "assets")):
 @app.get("/", include_in_schema=False)
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str = ""):
-    """Serve the Lovable React single-page application (SPA)."""
-    file_path = os.path.join(frontend_dist, full_path)
-    if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
-        return FileResponse(file_path)
+    """Serve the Lovable React single-page application (SPA) or fallback dashboard page."""
+    if full_path:
+        file_path = os.path.join(frontend_dist, full_path)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
 
-    index_path = os.path.join(frontend_dist, "index.html")
-    if os.path.exists(index_path):
-        return FileResponse(index_path)
+    for dist in possible_dists:
+        index_path = os.path.join(dist, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
 
-    return JSONResponse(
-        status_code=404,
-        content={"detail": f"Build file not found at {index_path}"},
-    )
+    # Fallback dashboard HTML when frontend has not been compiled (e.g. test / dev environments)
+    fallback_dashboard = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FBR Tax Copilot Dashboard</title>
+</head>
+<body>
+    <h1>FBR Tax Copilot — B2B Advisory Platform</h1>
+    <p>Status: <strong>Online</strong></p>
+    <p>Documentation: <a href="/docs">Swagger UI (/docs)</a> | <a href="/redoc">ReDoc (/redoc)</a></p>
+</body>
+</html>"""
+    return HTMLResponse(content=fallback_dashboard, status_code=200)

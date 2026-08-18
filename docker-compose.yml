@@ -1,0 +1,153 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env.stack}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env.stack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.stack}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  ollama-init:
+    profiles: ["setup"]
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_MODEL: qwen2.5:3b
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["ollama pull $$OLLAMA_MODEL && ollama pull nomic-embed-text"]
+
+  source-bootstrap:
+    profiles: ["setup"]
+    build: .
+    env_file: .env
+    volumes:
+      - ./data/documents:/app/data/documents
+    command: python scripts/bootstrap_sources.py
+
+  rag-ingest:
+    profiles: ["setup"]
+    build: .
+    env_file: .env
+    environment:
+      EMBEDDING_PROVIDER: ollama
+      OLLAMA_BASE_URL: http://ollama:11434
+      CHROMADB_PATH: /app/data/chromadb
+    volumes:
+      - ./data/documents:/app/data/documents
+      - chroma_data:/app/data/chromadb
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+      source-bootstrap:
+        condition: service_completed_successfully
+    command: python ingest_documents.py
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DEBUG: "false"
+      AI_PROVIDER: ollama
+      EMBEDDING_PROVIDER: ollama
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: qwen2.5:3b
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      CHROMADB_PATH: /app/data/chromadb
+      CORS_ORIGINS: http://localhost:8000
+      API_KEY: ${API_KEY:?Set API_KEY in .env.stack}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.stack}
+      JAZZCASH_WEBHOOK_SECRET: ${JAZZCASH_WEBHOOK_SECRET:?Set JAZZCASH_WEBHOOK_SECRET in .env.stack}
+      EASYPAISA_WEBHOOK_SECRET: ${EASYPAISA_WEBHOOK_SECRET:?Set EASYPAISA_WEBHOOK_SECRET in .env.stack}
+      RAAST_WEBHOOK_SECRET: ${RAAST_WEBHOOK_SECRET:?Set RAAST_WEBHOOK_SECRET in .env.stack}
+      REQUIRE_MFA_FOR_WRITES: "false"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - chroma_data:/app/data/chromadb
+      - ./data/documents:/app/data/documents:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["sh", "-c", "python scripts/migrate.py && uvicorn api.main:app --host 0.0.0.0 --port 8000"]
+    healthcheck:
+      test: ["CMD", "python", "scripts/healthcheck.py", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  mcp:
+    build: .
+    env_file: .env
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      CHROMADB_PATH: /app/data/chromadb
+      API_KEY: ${API_KEY:?Set API_KEY in .env.stack}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.stack}
+    ports:
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: uvicorn integrations.mcp_server.http_app:app --host 0.0.0.0 --port 8001
+
+  payment-sandbox:
+    build:
+      context: .
+      dockerfile: integrations/payment_sandbox/Dockerfile
+    env_file: .env
+    environment:
+      TARGET_API: http://api:8000
+      JAZZCASH_WEBHOOK_SECRET: ${JAZZCASH_WEBHOOK_SECRET:?Set JAZZCASH_WEBHOOK_SECRET in .env.stack}
+      EASYPAISA_WEBHOOK_SECRET: ${EASYPAISA_WEBHOOK_SECRET:?Set EASYPAISA_WEBHOOK_SECRET in .env.stack}
+      RAAST_WEBHOOK_SECRET: ${RAAST_WEBHOOK_SECRET:?Set RAAST_WEBHOOK_SECRET in .env.stack}
+    ports:
+      - "127.0.0.1:8010:8010"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:
+  ollama_data:
+  

@@ -1,0 +1,7 @@
+{
+  "cases": 50,
+  "baseline_recall_at_5": 1.0,
+  "baseline_mrr": 0.86,
+  "latency_ms_p50": 0.0,
+  "result": "PASS"
+}

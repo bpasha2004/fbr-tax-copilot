@@ -1,0 +1,49 @@
+# Pin numpy first
+numpy>=2.0.0
+
+# Core API
+fastapi>=0.115.9,<0.116.0
+uvicorn>=0.30.0
+
+# Data validation
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# Rules Engine
+python-dateutil>=2.9.0
+
+# Database
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+
+# RAG
+chromadb>=1.0.0,<1.1.0
+pymupdf>=1.27.0
+
+# Embeddings
+ollama>=0.2.1
+
+# Testing
+pytest>=8.2.0
+pytest-asyncio>=0.23.0
+
+# Utils
+python-dotenv>=1.0.0
+httpx>=0.27.0
+
+# Auth — TOTP 2FA (Google Authenticator, zero cost)
+pyotp>=2.9.0
+# Pinned below 2.0: mcp>=2.0 removed FastMCP (replaced by MCPServer/Server),
+# which integrations/mcp_server/server.py and http_app.py are built against.
+# Bumping this requires migrating both files to the new API first.
+mcp>=1.9,<2.0
+ruff>=0.12.0
+pip-audit>=2.9.0
+
+# Distributed runtime
+redis>=5.0.0,<6.0.0
+
+# Optional production telemetry
+opentelemetry-api>=1.27.0,<2.0.0
+opentelemetry-sdk>=1.27.0,<2.0.0
+opentelemetry-instrumentation-fastapi>=0.48b0,<1.0.0

@@ -1,0 +1,37 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.stack.example
+.env.stack
+config/.env.dev
+config/.env.prod
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+
+# Runtime state
+*.db
+*.db-shm
+*.db-wal
+data/chromadb/
+data/documents/*.pdf
+
+# Test/tool caches
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store

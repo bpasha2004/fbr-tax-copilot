@@ -1,0 +1,41 @@
+# Without this file, `COPY . .` in the Dockerfile pulls the ENTIRE build
+# context into the image — including local dev secrets that .gitignore
+# keeps out of git but does nothing to keep out of `docker build`.
+
+# Local secrets — never bake these into an image layer
+config/.env.dev
+config/.env.prod
+.env
+.env.stack
+
+# Dev/runtime state
+*.db
+*.db-shm
+*.db-wal
+data/chromadb/
+data/documents/*.pdf
+
+# VCS and tooling
+.git/
+.github/
+.gitignore
+.dockerignore
+.vscode/
+.idea/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Docs not needed at runtime (kept out of the image, not the repo)
+*.md
+!README.md

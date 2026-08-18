@@ -1,0 +1,6 @@
+{
+  "cases": 50,
+  "A_unfiltered_top1_accuracy": 0.72,
+  "B_routed_top1_accuracy": 1.0,
+  "improvement": 0.28
+}

@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FBR Tax Copilot — Advisor Dashboard</title>
+<link rel="icon" href="/favicon.ico" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #0F1117;
+  --surface:      #181B25;
+  --surface-2:    #1E2230;
+  --surface-3:    #252A3A;
+  --border:       #2A2F42;
+  --border-light: #333A52;
+  --accent:       #4F7FFF;
+  --accent-dim:   #1E3A80;
+  --green:        #22C55E;
+  --green-dim:    #14532D;
+  --amber:        #F59E0B;
+  --amber-dim:    #78350F;
+  --red:          #EF4444;
+  --red-dim:      #7F1D1D;
+  --purple:       #A855F7;
+  --purple-dim:   #4C1D95;
+  --text:         #E4E7F0;
+  --text-2:       #8B92A8;
+  --text-3:       #55607A;
+  --mono:         'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 48px 1fr;
+}
+
+/* ── Top Bar ─── */
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.topbar-text {
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+/* ── Sidebar ─── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-section {
+  padding: 6px 12px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin: 0 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  width: calc(100% - 16px);
+  text-align: left;
+}
+
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active { background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+
+.nav-icon { font-size: 16px; }
+
+/* ── Main content ─── */
+.main {
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.panel {
+  display: none;
+  padding: 24px;
+  max-width: 900px;
+}
+
+.panel.active { display: block; }
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.panel-sub {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 24px;
+  font-weight: 400;
+}
+
+/* ── Cards ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.icon-blue   { background: var(--accent-dim); }
+.icon-green  { background: var(--green-dim); }
+.icon-amber  { background: var(--amber-dim); }
+.icon-purple { background: var(--purple-dim); }
+
+.card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.card-desc  { font-size: 12px; color: var(--text-2); font-weight: 400; margin-top: 2px; }
+
+/* ── Form elements ─── */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+input[type=number], input[type=text], select, textarea {
+  width: 100%;
+  height: 40px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+}
+
+textarea { height: auto; padding: 10px 12px; resize: vertical; }
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,127,255,0.15);
+}
+
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+/* ── Tabs ─── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+
+.tab-btn {
+  padding: 7px 16px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.tab-btn.active { background: var(--surface-3); color: var(--text); }
+
+/* ── Buttons ─── */
+.btn {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #6B93FF; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-sm { height: 32px; padding: 0 14px; font-size: 12px; }
+.btn-ghost { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--border-light); color: var(--text); }
+.btn-full { width: 100%; justify-content: center; height: 44px; font-size: 14px; margin-top: 6px; }
+
+/* ── IRIS Output Table ─── */
+.iris-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.iris-table th {
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.iris-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: top;
+}
+.iris-table tr:hover td { background: var(--surface-2); }
+.box-code { font-family: var(--mono); color: var(--accent); font-weight: 600; font-size: 11px; }
+.iris-value { font-family: var(--mono); color: var(--green); font-weight: 600; }
+.legal-ref { color: var(--text-3); font-size: 11px; }
+.iris-note { color: var(--text-2); font-size: 11px; }
+
+/* ── Document Checklist ─── */
+.doc-list { display: flex; flex-direction: column; gap: 8px; }
+.doc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.doc-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.doc-body { flex: 1; }
+.doc-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.doc-basis { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.doc-risk { font-size: 11px; color: var(--red); margin-top: 4px; display: none; }
+.doc-item.missing { border-color: var(--red-dim); background: rgba(239,68,68,0.06); }
+.doc-item.missing .doc-risk { display: block; }
+
+/* ── Stat chips ─── */
+.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-chip {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat-val { font-size: 22px; font-weight: 800; color: var(--text); font-family: var(--mono); }
+.stat-key { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+
+/* ── Client list ─── */
+.client-list { display: flex; flex-direction: column; gap: 8px; }
+.client-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.client-row:hover { border-color: var(--accent); }
+.client-row.selected { border-color: var(--accent); background: var(--accent-dim); }
+.client-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--surface-3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+.client-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.client-meta { font-size: 12px; color: var(--text-2); }
+.client-badge {
+  margin-left: auto;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.client-badge.salaried { background: var(--accent-dim); color: var(--accent); }
+.client-badge.freelance { background: var(--purple-dim); color: var(--purple); }
+.client-badge.business { background: var(--green-dim); color: var(--green); }
+
+/* ── Alert / badge ─── */
+.alert {
+  display: flex; gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.alert-warn { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
+.alert-ok   { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); }
+.alert-info { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); }
+.alert-error { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+
+/* ── Loader ─── */
+.loading { display: flex; gap: 4px; align-items: center; }
+.loading span { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: blink 0.6s ease-in-out infinite; }
+.loading span:nth-child(2) { animation-delay: 0.1s; }
+.loading span:nth-child(3) { animation-delay: 0.2s; }
+@keyframes blink { 0%,100% { opacity:0.3; } 50% { opacity: 1; } }
+
+/* ── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 99px; }
+
+/* ── Mono tag ─── */
+.mono { font-family: var(--mono); font-size: 12px; }
+.tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.tag-blue { background: var(--accent-dim); color: var(--accent); }
+.tag-green { background: var(--green-dim); color: var(--green); }
+.tag-red { background: var(--red-dim); color: var(--red); }
+.tag-amber { background: var(--amber-dim); color: var(--amber); }
+.tag-purple { background: var(--purple-dim); color: var(--purple); }
+
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+.explanation-block {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  font-family: var(--mono);
+}
+
+@media (max-width: 768px) {
+  body { grid-template-columns: 1fr; grid-template-rows: 48px auto 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ──────────────────────────────────────────────────────────── -->
+<div class="topbar">
+  <div class="logo">
+    <span>⚖️</span>
+    FBR Tax Copilot
+    <span class="logo-badge">B2B</span>
+  </div>
+  <div class="topbar-right">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="topbar-text" id="statusLabel">Connecting...</span>
+  </div>
+</div>
+
+<!-- ── Sidebar ───────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-section">Workspace</div>
+  <button class="nav-item active" onclick="showPanel('dashboard')">
+    <span class="nav-icon">📊</span> Dashboard
+  </button>
+  <button class="nav-item" onclick="showPanel('clients')">
+    <span class="nav-icon">👥</span> Clients
+  </button>
+
+  <div class="sidebar-section">Calculate</div>
+  <button class="nav-item" onclick="showPanel('salary')">
+    <span class="nav-icon">💼</span> Salary Tax
+  </button>
+  <button class="nav-item" onclick="showPanel('freelance')">
+    <span class="nav-icon">💻</span> Freelance / IT
+  </button>
+  <button class="nav-item" onclick="showPanel('business')">
+    <span class="nav-icon">🏪</span> Business / AOP
+  </button>
+
+  <div class="sidebar-section">System</div>
+  <button class="nav-item" onclick="showPanel('docs')">
+    <span class="nav-icon">📄</span> Docs API
+  </button>
+</aside>
+
+<!-- ── Main Content ──────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- ── DASHBOARD ──────────────────────────────────────────────────────── -->
+  <div class="panel active" id="panel-dashboard">
+    <div class="panel-title">Agency Dashboard</div>
+    <div class="panel-sub">FBR Tax Year 2025–26 · Finance Act 2026 · Ollama Local AI</div>
+
+    <div class="stat-row">
+      <div class="stat-chip">
+        <div class="stat-val" id="dashRagChunks">1,658</div>
+        <div class="stat-key">RAG Chunks Indexed</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val">4</div>
+        <div class="stat-key">FBR Documents</div>
+      </div>
+      <div class="stat-chip">
+        <div class="stat-val">3</div>
+        <div class="stat-key">Tax Regimes Active</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon icon-blue">🗄️</div>
+        <div>
+          <div class="card-title">Regulatory Coverage</div>
+          <div class="card-desc">Documents in vector store</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="alert alert-ok">✓ Finance Act 2026 — Salaried Division I + Business Division II slabs</div>
+        <div class="alert alert-ok">✓ FBR Circular No. 01 of 2025–26 — Progressive slab confirmation</div>
+        <div class="alert alert-ok">✓ WHT Rate Card 2025 — Section 149, 153, 154 rates</div>
+        <div class="alert alert-ok">✓ Income Tax Ordinance 2001 (amended Feb 2026) — Section 154A confirmed</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon icon-green">⚙️</div>
+        <div>
+          <div class="card-title">Active Tax Regimes</div>
+          <div class="card-desc">Deterministic rules engine — zero AI hallucination on rates</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="alert alert-info">💼 <strong>Salaried (Division I):</strong> 6 tiers — 0% to 35% · Finance Act 2026, First Schedule, Part I · IRIS Box 9000–9500</div>
+        <div class="alert alert-info">💻 <strong>Freelance / IT Export (Sec. 154A):</strong> 0.25% Final Tax on gross proceeds · PRC required · IRIS Box 5000–5001, 7300</div>
+        <div class="alert alert-info">🏪 <strong>Business / Non-Salaried (Division II):</strong> 6 tiers — 0% to 45% · Finance Act 2026, First Schedule, Part I, Division II · IRIS Box 4000–9500</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CLIENTS ─────────────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-clients">
+    <div class="panel-title">Client Profiles</div>
+    <div class="panel-sub">Multi-tenant advisor workspace. Each client has full calculation history.</div>
+
+    <div class="alert alert-warn">⚠️ Client management requires Google Sign-In. Use <code>GET /api/v1/auth/login</code> to authenticate.</div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon icon-blue">➕</div>
+        <div><div class="card-title">Add New Client</div><div class="card-desc">All fields except name are optional</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Full Name *</label><input type="text" id="newClientName" placeholder="Ali Hassan"></div>
+        <div class="field"><label>CNIC</label><input type="text" id="newClientCnic" placeholder="42101-1234567-1"></div>
+      </div>
+      <div class="field-row-3">
+        <div class="field">
+          <label>Taxpayer Type *</label>
+          <select id="newClientType">
+            <option value="salaried">Salaried</option>
+            <option value="freelance">Freelance / IT Export</option>
+            <option value="business">Business / AOP</option>
+          </select>
+        </div>
+        <div class="field"><label>Annual Income (PKR)</label><input type="number" id="newClientIncome" placeholder="1200000"></div>
+        <div class="field"><label>NTN</label><input type="text" id="newClientNtn" placeholder="1234567-8"></div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addDemoClient()">+ Add Client (Demo)</button>
+    </div>
+
+    <div class="client-list" id="clientList">
+      <!-- populated by JS -->
+      <div style="color:var(--text-3);font-size:13px;padding:12px;">No clients added yet. Use the form above.</div>
+    </div>
+  </div>
+
+  <!-- ── SALARY TAX ──────────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-salary">
+    <div class="panel-title">Salary Tax Calculator</div>
+    <div class="panel-sub">Finance Act 2026, First Schedule, Part I, Division I · IRIS Form 114</div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon icon-blue">💼</div>
+        <div><div class="card-title">Client Details</div><div class="card-desc">Salaried individual — progressive 6-tier slab</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Annual Salary Income (PKR)</label>
+          <input type="number" id="salaryIncome" placeholder="e.g. 2400000" min="0">
+        </div>
+        <div class="field">
+          <label>Tax Year</label>
+          <select id="salaryYear"><option value="2026-27">2026–27</option><option value="2025-26">2025–26</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Documents Submitted (tick applicable)</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_form149" value="form_149"> Form 149 (Employer WHT)
+          </label>
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_cnic_s" value="cnic"> CNIC
+          </label>
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_bank_s" value="bank_statement"> Bank Statement
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="salaryBtn" onclick="calculateSalary()">
+        <span id="salaryBtnText">Calculate + Generate IRIS Entries</span>
+      </button>
+    </div>
+
+    <div id="salaryResults" style="display:none;">
+      <div class="stat-row" id="salaryStats"></div>
+      <div class="card" id="salaryIrisCard">
+        <div class="card-head">
+          <div class="card-icon icon-green">📋</div>
+          <div><div class="card-title">IRIS 2.0 Portal Entry Guide</div><div class="card-desc">Exact fields to fill in FBR IRIS for this client</div></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="iris-table">
+            <thead><tr><th>Tab</th><th>Sub-Tab</th><th>Box Code</th><th>Value (PKR)</th><th>Legal Clause</th><th>Note</th></tr></thead>
+            <tbody id="salaryIrisBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card" id="salaryDocCard">
+        <div class="card-head">
+          <div class="card-icon icon-amber">📁</div>
+          <div><div class="card-title">Document Checklist</div><div class="card-desc">Mandatory documents per FBR / ITO 2001</div></div>
+        </div>
+        <div class="doc-list" id="salaryDocList"></div>
+      </div>
+      <div class="card" id="salaryAiCard" style="display:none;">
+        <div class="card-head">
+          <div class="card-icon icon-purple">🤖</div>
+          <div><div class="card-title">AI Advisor Output</div><div class="card-desc">Associate-level analysis · Local Ollama</div></div>
+        </div>
+        <div class="explanation-block" id="salaryAiText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FREELANCE / IT EXPORT ───────────────────────────────────────────── -->
+  <div class="panel" id="panel-freelance">
+    <div class="panel-title">Freelance / IT Export Tax</div>
+    <div class="panel-sub">Section 154A IT/ITeS Export Tax — rate depends on eligibility and filer status</div>
+
+    <div class="alert alert-info">
+      ℹ️ <strong>Final Tax Regime:</strong> Section 154A applies 0.25% on gross foreign remittances as a FINAL TAX.
+      No further income tax is payable on these proceeds. Bank deducts WHT; remainder is balance due.
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon icon-purple">💻</div>
+        <div><div class="card-title">IT Export Proceeds</div><div class="card-desc">Section 154A — Finance Act 2026 extension</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Gross Export Proceeds Received (PKR)</label>
+          <input type="number" id="freelanceProceeds" placeholder="e.g. 2400000" min="0">
+        </div>
+        <div class="field">
+          <label>Tax Year</label>
+          <select id="freelanceYear"><option value="2026-27">2026–27</option><option value="2025-26">2025–26</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Documents Submitted</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_prc" value="prc"> PRC (Proceeds Realization Certificate)
+          </label>
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_bank_f" value="bank_statement"> Bank Statement
+          </label>
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_cnic_f" value="cnic"> CNIC
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="freelanceBtn" onclick="calculateFreelance()">
+        <span id="freelanceBtnText">Calculate Section 154A + IRIS Entries</span>
+      </button>
+    </div>
+
+    <div id="freelanceResults" style="display:none;">
+      <div class="stat-row" id="freelanceStats"></div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon icon-green">📋</div>
+          <div><div class="card-title">IRIS 2.0 Portal Entry Guide — Section 154A</div><div class="card-desc">Income from Business → IT/Software Exports tab</div></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="iris-table">
+            <thead><tr><th>Tab</th><th>Sub-Tab</th><th>Box Code</th><th>Value</th><th>Legal Clause</th><th>Note</th></tr></thead>
+            <tbody id="freelanceIrisBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon icon-amber">📁</div>
+          <div><div class="card-title">Document Checklist — PRC Required</div><div class="card-desc">Section 154A benefit denied without PRC</div></div>
+        </div>
+        <div class="doc-list" id="freelanceDocList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BUSINESS / AOP ──────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-business">
+    <div class="panel-title">Business / AOP Tax Calculator</div>
+    <div class="panel-sub">Finance Act 2026, First Schedule, Part I, Division II · Non-salaried individual / AOP</div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon icon-green">🏪</div>
+        <div><div class="card-title">Business Income</div><div class="card-desc">6-tier progressive slab: 0% → 15% → 20% → 30% → 40% → 45%</div></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Net Business Income (PKR)</label>
+          <input type="number" id="businessIncome" placeholder="e.g. 3600000" min="0">
+        </div>
+        <div class="field">
+          <label>Tax Year</label>
+          <select id="businessYear"><option value="2026-27">2026–27</option><option value="2025-26">2025–26</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Documents Submitted</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_ntn_b" value="ntn"> NTN Certificate
+          </label>
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_bank_b" value="bank_statement"> Bank Statements
+          </label>
+          <label style="text-transform:none;font-weight:500;display:flex;gap:6px;align-items:center;cursor:pointer;">
+            <input type="checkbox" id="doc_accounts_b" value="accounts"> Annual Accounts
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="businessBtn" onclick="calculateBusiness()">
+        <span id="businessBtnText">Calculate Division II Tax + IRIS Entries</span>
+      </button>
+    </div>
+
+    <div id="businessResults" style="display:none;">
+      <div class="stat-row" id="businessStats"></div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon icon-green">📋</div>
+          <div><div class="card-title">IRIS 2.0 Portal Entry Guide — Division II</div><div class="card-desc">Income from Business tab → Tax Computation</div></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="iris-table">
+            <thead><tr><th>Tab</th><th>Sub-Tab</th><th>Box Code</th><th>Value</th><th>Legal Clause</th><th>Note</th></tr></thead>
+            <tbody id="businessIrisBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div class="card-icon icon-amber">📁</div>
+          <div><div class="card-title">Document Checklist</div><div class="card-desc">NTN + Bank Statements + Annual Accounts required</div></div>
+        </div>
+        <div class="doc-list" id="businessDocList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DOCS ────────────────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-docs">
+    <div class="panel-title">API Reference</div>
+    <div class="panel-sub">All endpoints. Run the API then visit <a href="/docs" style="color:var(--accent)">/docs</a> for interactive Swagger UI.</div>
+    <div class="card">
+      <div class="card-head"><div class="card-icon icon-blue">🔌</div><div><div class="card-title">Endpoints</div></div></div>
+      <pre style="font-family:var(--mono);font-size:12px;color:var(--text-2);line-height:1.8;">POST /api/v1/tax/calculate          — Salaried: deterministic + IRIS entries
+POST /api/v1/tax/explain            — Salaried: + AI advisor output
+POST /api/v1/tax/freelance/calculate— Section 154A: 0.25% final tax
+POST /api/v1/tax/freelance/explain  — Section 154A: + AI advisor output
+POST /api/v1/tax/business/calculate — Division II: business/AOP progressive
+POST /api/v1/tax/business/explain   — Division II: + AI advisor output
+
+GET  /api/v1/auth/login             — Google OIDC login URL
+GET  /api/v1/auth/callback          — OAuth2 callback (auto)
+GET  /api/v1/auth/me                — Current session info
+POST /api/v1/auth/totp/setup        — Setup Google Authenticator 2FA
+POST /api/v1/auth/totp/verify       — Verify TOTP code
+
+GET  /api/v1/clients/dashboard      — Agency dashboard summary
+GET  /api/v1/clients                — List all clients
+POST /api/v1/clients                — Create client
+GET  /api/v1/clients/{id}           — Get client
+PATCH /api/v1/clients/{id}         — Update client
+POST /api/v1/clients/calculations/save — Save calculation to history
+GET  /api/v1/clients/{id}/history   — Client calculation history
+POST /api/v1/clients/payment/routes — Payment routing (JazzCash/EasyPaisa/Raast)</pre>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:8000/api/v1'
+  : '/api/v1';
+
+// ── Panel navigation ──────────────────────────────────────────────────────
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── Status check ──────────────────────────────────────────────────────────
+async function checkStatus() {
+  try {
+    const r = await fetch(`${API}/tax/health`);
+    const d = await r.json();
+    const dot = document.getElementById('statusDot');
+    const lbl = document.getElementById('statusLabel');
+    if (d.status === 'ok') {
+      dot.style.background = 'var(--green)';
+      dot.style.boxShadow  = '0 0 6px var(--green)';
+      lbl.textContent = `Ollama online · ${d.available_models?.length || 0} models`;
+    } else {
+      dot.style.background = 'var(--amber)';
+      lbl.textContent = 'Ollama offline — deterministic mode';
+    }
+  } catch {
+    document.getElementById('statusDot').style.background = 'var(--red)';
+    document.getElementById('statusLabel').textContent = 'API offline';
+  }
+}
+checkStatus();
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function fmt(n) { return 'PKR ' + parseFloat(n).toLocaleString('en-PK', {maximumFractionDigits: 0}); }
+
+function setLoading(btnId, textId, loading) {
+  const btn = document.getElementById(btnId);
+  const txt = document.getElementById(textId);
+  btn.disabled = loading;
+  if (loading) txt.innerHTML = '<span class="loading"><span></span><span></span><span></span></span>';
+  else txt.textContent = btn._origText || 'Calculate';
+}
+
+function getCheckedDocs(ids) {
+  return ids.filter(id => document.getElementById(id)?.checked)
+            .map(id => document.getElementById(id).value);
+}
+
+function renderStats(containerId, income, tax, rate) {
+  document.getElementById(containerId).innerHTML = `
+    <div class="stat-chip"><div class="stat-val">${fmt(income)}</div><div class="stat-key">Annual Income</div></div>
+    <div class="stat-chip"><div class="stat-val">${fmt(tax)}</div><div class="stat-key">Tax Payable</div></div>
+    <div class="stat-chip"><div class="stat-val">${parseFloat(rate).toFixed(2)}%</div><div class="stat-key">Effective Rate</div></div>
+  `;
+}
+
+function renderIrisTable(tbodyId, entries) {
+  const tbody = document.getElementById(tbodyId);
+  if (!entries || !entries.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-3)">No IRIS entries returned.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = entries.map(e => `
+    <tr>
+      <td>${e.tab || ''}</td>
+      <td>${e.sub_tab || ''}</td>
+      <td><span class="box-code">${e.box || ''}</span></td>
+      <td><span class="iris-value">${e.value || ''}</span></td>
+      <td><span class="legal-ref">${e.legal_clause || ''}</span></td>
+      <td><span class="iris-note">${e.note || ''}</span></td>
+    </tr>`).join('');
+}
+
+function renderDocList(containerId, docCheck) {
+  const el = document.getElementById(containerId);
+  if (!docCheck || !docCheck.checklist) {
+    el.innerHTML = '<div style="color:var(--text-3);font-size:13px;">Submit documents to see checklist.</div>';
+    return;
+  }
+  el.innerHTML = docCheck.checklist.map(d => `
+    <div class="doc-item ${d.status !== 'OK' ? 'missing' : ''}">
+      <div class="doc-icon">${d.status === 'OK' ? '✅' : (d.required ? '❌' : '⚪')}</div>
+      <div class="doc-body">
+        <div class="doc-name">${d.document}</div>
+        <div class="doc-basis">${d.legal_basis}</div>
+        <div class="doc-risk">Risk: ${d.if_missing}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Salary Tax ────────────────────────────────────────────────────────────
+document.getElementById('salaryBtn')._origText = 'Calculate + Generate IRIS Entries';
+
+async function calculateSalary() {
+  const income = parseFloat(document.getElementById('salaryIncome').value);
+  if (!income || income <= 0) { alert('Enter a valid annual salary.'); return; }
+  const docs = getCheckedDocs(['doc_form149', 'doc_cnic_s', 'doc_bank_s']);
+
+  setLoading('salaryBtn', 'salaryBtnText', true);
+  try {
+    const res = await fetch(`${API}/tax/explain`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        annual_income: income,
+        taxpayer_type: 'salaried',
+        tax_year: document.getElementById('salaryYear').value,
+        documents: docs,
+        user_question: 'List all IRIS 2.0 entries with box codes and compliance flags.',
+        language: 'english',
+        dev_mode: false,
+      })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.detail || 'API error');
+
+    renderStats('salaryStats', d.annual_income, d.tax_payable, d.effective_rate);
+    renderIrisTable('salaryIrisBody', d.iris_entries);
+    renderDocList('salaryDocList', d.document_check);
+
+    document.getElementById('salaryResults').style.display = 'block';
+
+    if (d.explanation && !d.explanation_refused) {
+      document.getElementById('salaryAiCard').style.display = 'block';
+      document.getElementById('salaryAiText').textContent = d.explanation;
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    setLoading('salaryBtn', 'salaryBtnText', false);
+  }
+}
+
+// ── Freelance Tax ─────────────────────────────────────────────────────────
+document.getElementById('freelanceBtn')._origText = 'Calculate Section 154A + IRIS Entries';
+
+async function calculateFreelance() {
+  const proceeds = parseFloat(document.getElementById('freelanceProceeds').value);
+  if (!proceeds || proceeds <= 0) { alert('Enter valid export proceeds.'); return; }
+  const docs = getCheckedDocs(['doc_prc', 'doc_bank_f', 'doc_cnic_f']);
+
+  setLoading('freelanceBtn', 'freelanceBtnText', true);
+  try {
+    const res = await fetch(`${API}/tax/freelance/calculate`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        gross_export_proceeds: proceeds,
+        tax_year: document.getElementById('freelanceYear').value,
+        documents: docs,
+        dev_mode: false,
+      })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.detail || 'API error');
+
+    renderStats('freelanceStats', d.annual_income, d.tax_payable, d.effective_rate || 0.25);
+    renderIrisTable('freelanceIrisBody', d.iris_entries);
+    renderDocList('freelanceDocList', d.document_check);
+
+    document.getElementById('freelanceResults').style.display = 'block';
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    setLoading('freelanceBtn', 'freelanceBtnText', false);
+  }
+}
+
+// ── Business Tax ──────────────────────────────────────────────────────────
+document.getElementById('businessBtn')._origText = 'Calculate Division II Tax + IRIS Entries';
+
+async function calculateBusiness() {
+  const income = parseFloat(document.getElementById('businessIncome').value);
+  if (!income || income <= 0) { alert('Enter valid net business income.'); return; }
+  const docs = getCheckedDocs(['doc_ntn_b', 'doc_bank_b', 'doc_accounts_b']);
+
+  setLoading('businessBtn', 'businessBtnText', true);
+  try {
+    const res = await fetch(`${API}/tax/business/calculate`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        net_business_income: income,
+        tax_year: document.getElementById('businessYear').value,
+        documents: docs,
+        dev_mode: false,
+      })
+    });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.detail || 'API error');
+
+    renderStats('businessStats', d.annual_income, d.tax_payable, d.effective_rate);
+    renderIrisTable('businessIrisBody', d.iris_entries);
+    renderDocList('businessDocList', d.document_check);
+
+    document.getElementById('businessResults').style.display = 'block';
+  } catch(e) {
+    alert('Error: ' + e.message);
+  } finally {
+    setLoading('businessBtn', 'businessBtnText', false);
+  }
+}
+
+// ── Demo client ───────────────────────────────────────────────────────────
+const demoClients = [];
+function addDemoClient() {
+  const name   = document.getElementById('newClientName').value.trim();
+  const type   = document.getElementById('newClientType').value;
+  const income = parseFloat(document.getElementById('newClientIncome').value) || null;
+  if (!name) { alert('Enter client name.'); return; }
+
+  demoClients.push({ id: demoClients.length + 1, full_name: name, taxpayer_type: type, annual_income: income });
+  renderClientList();
+  document.getElementById('newClientName').value = '';
+  document.getElementById('newClientIncome').value = '';
+}
+
+function renderClientList() {
+  const el = document.getElementById('clientList');
+  if (!demoClients.length) {
+    el.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:12px;">No clients added yet.</div>';
+    return;
+  }
+  el.innerHTML = demoClients.map(c => `
+    <div class="client-row">
+      <div class="client-avatar">${c.full_name[0]}</div>
+      <div>
+        <div class="client-name">${c.full_name}</div>
+        <div class="client-meta">${c.annual_income ? fmt(c.annual_income) + ' · ' : ''}ID #${c.id}</div>
+      </div>
+      <span class="client-badge ${c.taxpayer_type}">${c.taxpayer_type}</span>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

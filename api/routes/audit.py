@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Header, HTTPException, Query
 from sqlalchemy import select
+
 from src.shared.auth import get_current_advisor, require_role
-from src.shared.models import get_engine, audit_events
+from src.shared.models import audit_events, get_engine
 
 router = APIRouter(prefix="/api/v1/audit", tags=["audit"])
 

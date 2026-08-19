@@ -1,8 +1,12 @@
-import hashlib,hmac,time,json
-from unittest.mock import patch
+import hashlib
+import hmac
+import time
+
 from fastapi.testclient import TestClient
+
 from api.main import app
-from api.middleware.hmac_webhook import _verify_hmac,_check_timestamp
+from api.middleware.hmac_webhook import _check_timestamp, _verify_hmac
+
 
 def test_hmac_verification_is_timing_safe_and_correct():
     body=b"{}"; secret="test-secret"

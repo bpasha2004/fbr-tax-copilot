@@ -2,7 +2,6 @@
 It never invents tax figures: it formats only verified calculator output.
 """
 from ai.base import AIProvider
-from config.settings import settings
 
 
 class LocalProvider(AIProvider):

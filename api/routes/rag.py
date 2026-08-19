@@ -18,19 +18,19 @@ Every response returns:
 This separation exists so grounding can be evaluated and tuned on its
 own — independent of the AI explanation layer that consumes it.
 """
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional
 
-from rag.retriever import FBRRetriever, CONFIDENCE_THRESHOLD
+from rag.retriever import CONFIDENCE_THRESHOLD, FBRRetriever
 
 router = APIRouter(prefix="/api/v1/rag", tags=["rag"])
 
 
 class RAGQueryRequest(BaseModel):
     query:          str            = Field(..., examples=["What is the tax rate for salaried income of 2,000,000?"])
-    taxpayer_type:  Optional[str]  = Field(None, examples=["salaried"])
-    tax_year:       Optional[str]  = Field(None, examples=["2026-27"])
+    taxpayer_type:  str | None  = Field(None, examples=["salaried"])
+    tax_year:       str | None  = Field(None, examples=["2026-27"])
     top_k:          int            = Field(5, ge=1, le=20)
 
 

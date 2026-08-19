@@ -1,5 +1,6 @@
 from math import log2
 
+
 def recall_at_k(results, expected, k=5):
     got={r.get("id") if isinstance(r,dict) else getattr(r,"id",None) for r in results[:k]}
     exp=set(expected); return len(got&exp)/len(exp) if exp else 0.0

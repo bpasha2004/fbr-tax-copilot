@@ -1,5 +1,6 @@
-from eval.benchmark import run_offline
 import json
+
+from eval.benchmark import run_offline
 
 if __name__ == "__main__":
     report=run_offline()

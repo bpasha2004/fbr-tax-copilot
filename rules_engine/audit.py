@@ -1,7 +1,7 @@
 import json
-from decimal import Decimal
 from datetime import datetime, timezone
-from dataclasses import asdict
+from decimal import Decimal
+
 from rules_engine.core import TaxResult
 
 

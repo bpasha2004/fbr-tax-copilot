@@ -1,5 +1,8 @@
 """Check that Ollama is live and both the generation and embedding models exist."""
-import json, os, urllib.request
+import json
+import os
+import urllib.request
+
 base = os.getenv("OLLAMA_URL", "http://localhost:11434")
 model = os.getenv("OLLAMA_MODEL", "qwen2.5:3b")
 

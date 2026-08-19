@@ -1,7 +1,11 @@
-from fastapi import APIRouter
-from config.settings import settings
 from datetime import datetime, timezone
-from fastapi.responses import PlainTextResponse, JSONResponse
+
+import httpx
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse, PlainTextResponse
+from sqlalchemy.exc import SQLAlchemyError
+
+from config.settings import settings
 
 router = APIRouter()
 
@@ -26,19 +30,19 @@ def readiness_check():
         with get_engine().connect() as conn:
             conn.exec_driver_sql("SELECT 1")
         checks["database"] = True
-    except Exception:
+    except (SQLAlchemyError, OSError, RuntimeError):
         pass
     try:
         from rag.vector_store import ChromaVectorStore
         ChromaVectorStore().count()
         checks["chromadb"] = True
-    except Exception:
+    except (OSError, RuntimeError, ValueError):
         pass
     try:
         import redis
         r = redis.Redis.from_url(settings.REDIS_URL)
         checks["redis"] = bool(r.ping())
-    except Exception:
+    except (OSError, RuntimeError, ValueError):
         pass
     status = "ready" if all(checks.values()) else "degraded"
     return JSONResponse(status_code=200 if status == "ready" else 503, content={"status": status, "checks": checks})
@@ -47,7 +51,7 @@ def readiness_check():
 @router.get("/health/dependencies")
 def dependency_health():
     """Report live dependency status without failing the basic liveness probe."""
-    import httpx
+
     from config.settings import settings
     result = {"api": "ok", "database": "offline", "redis": "offline", "chromadb": "offline", "ollama": "offline", "ollama_model": settings.OLLAMA_MODEL}
     try:
@@ -55,17 +59,17 @@ def dependency_health():
         with get_engine().connect() as conn:
             conn.exec_driver_sql("SELECT 1")
         result["database"] = "ok"
-    except Exception as exc:
+    except (SQLAlchemyError, OSError, RuntimeError) as exc:
         result["database_error"] = type(exc).__name__
     try:
         import redis
         result["redis"] = "ok" if redis.Redis.from_url(settings.REDIS_URL).ping() else "offline"
-    except Exception as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         result["redis_error"] = type(exc).__name__
     try:
         from rag.vector_store import ChromaVectorStore
         result["chromadb"] = f"ok:{ChromaVectorStore().count()} chunks"
-    except Exception as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         result["chromadb_error"] = type(exc).__name__
     try:
         r = httpx.get(f"{settings.OLLAMA_BASE_URL}/api/tags", timeout=3.0)
@@ -73,7 +77,7 @@ def dependency_health():
         if r.is_success:
             names = {m.get("name") for m in r.json().get("models", [])}
             result["ollama_model_loaded"] = settings.OLLAMA_MODEL in names or f"{settings.OLLAMA_MODEL}:latest" in names
-    except Exception as exc:
+    except (httpx.HTTPError, ValueError, TypeError, KeyError) as exc:
         result["ollama_error"] = type(exc).__name__
     return result
 

@@ -1,5 +1,7 @@
 """Live integration smoke test for API, Ollama, MCP and payment sandbox."""
-import json, os, sys, time, urllib.request
+import os
+import urllib.error
+import urllib.request
 
 BASE = os.getenv("APP_URL", "http://localhost:8000")
 OLLAMA = os.getenv("OLLAMA_URL", "http://localhost:11434")
@@ -13,10 +15,12 @@ def get(url):
 checks = {}
 for name, url in {"api": f"{BASE}/api/v1/health", "ollama": f"{OLLAMA}/api/tags", "mcp": MCP, "payment_sandbox": f"{PAY}/health"}.items():
     try:
-        status, body = get(url); checks[name] = status < 400
+        status, _body = get(url)
+        checks[name] = status < 400
         print(f"{name}: {status}")
-    except Exception as exc:
-        checks[name] = False; print(f"{name}: FAIL — {exc}")
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        checks[name] = False
+        print(f"{name}: FAIL — {exc}")
 
 if not all(checks.values()):
     raise SystemExit("Live stack check failed; inspect the service logs.")

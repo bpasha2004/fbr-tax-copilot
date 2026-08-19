@@ -57,8 +57,12 @@ The benchmark contains 50 controlled cases and can run against the live retrieve
 
 ```bash
 cp config/.env.stack.example .env.stack
-docker compose --env-file .env.stack up --build
+docker compose --env-file .env.stack --profile setup up --build
 ```
+
+The `setup` profile downloads the configured FBR source, pulls the Ollama models,
+and ingests the source into ChromaDB before the API is used for grounded
+explanations. For an already-initialized environment, omit `--profile setup`.
 
 Services:
 
@@ -94,7 +98,7 @@ make security
 
 ## Security posture
 
-See [`THREAT_MODEL.md`](THREAT_MODEL.md) and [`SECURITY.md`](SECURITY.md).
+See [`SECURITY.md`](SECURITY.md) for the security model, controls and responsible disclosure process.
 
 Key controls include:
 
@@ -115,4 +119,4 @@ See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the deployment runbook, operational che
 
 ## Important boundary
 
-This repository provides a real local payment/webhook sandbox and a production-oriented MCP/Ollama/Chroma deployment. Provider-specific production transactions require the provider's official sandbox/production credentials, current API contract and contractual/bank onboarding. See `PAYMENT_INTEGRATION_STATUS.md`.
+This repository provides a real local payment/webhook sandbox and a production-oriented MCP/Ollama/Chroma deployment. Provider-specific production transactions require the provider's official sandbox/production credentials, current API contract and contractual/bank onboarding. Provider-specific production transactions require official provider credentials, current API contracts and merchant/bank onboarding. The repository includes a local payment sandbox for deterministic integration testing.

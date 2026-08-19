@@ -1,7 +1,12 @@
 """Reproducible benchmark with an offline lexical baseline and optional live retriever."""
-import json, statistics, time, re
+import json
+import re
+import statistics
+import time
 from pathlib import Path
+
 from eval.metrics.retrieval import recall_at_k, reciprocal_rank
+
 ROOT=Path(__file__).resolve().parent
 
 def load_cases():

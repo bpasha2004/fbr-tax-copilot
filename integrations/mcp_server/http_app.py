@@ -3,10 +3,11 @@ Uses the official MCP Python SDK v2 Streamable HTTP transport.
 """
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
-from src.salary_tax.calculator import SalaryTaxCalculator
+
 from config.settings import settings
 from src.business_tax.calculator import BusinessTaxCalculator
 from src.freelance_tax.calculator import FreelanceTaxCalculator
+from src.salary_tax.calculator import SalaryTaxCalculator
 
 security = TransportSecuritySettings(
     allowed_hosts=["localhost:*", "127.0.0.1:*", "mcp:*", "mcp-server:*"],

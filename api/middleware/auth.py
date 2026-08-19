@@ -5,9 +5,10 @@ short-lived advisor bearer session. Development intentionally remains open for
 local smoke tests.
 """
 import hmac
+
 from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from config.settings import settings
 from src.shared.auth import get_current_advisor

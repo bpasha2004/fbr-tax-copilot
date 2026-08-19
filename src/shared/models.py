@@ -4,11 +4,25 @@ The schema is deliberately money-safe (NUMERIC), tenant-scoped, and includes
 session, audit, payment lifecycle, reconciliation and OAuth-state records.
 """
 from datetime import datetime, timezone
+
 from sqlalchemy import (
-    create_engine, MetaData, Table, Column, Integer, String, Boolean, DateTime,
-    Text, ForeignKey, JSON, Numeric, UniqueConstraint, Index
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    MetaData,
+    Numeric,
+    String,
+    Table,
+    Text,
+    UniqueConstraint,
+    create_engine,
 )
 from sqlalchemy.pool import StaticPool
+
 from config.settings import settings
 
 metadata = MetaData()
@@ -30,10 +44,10 @@ advisors = Table(
     Column("last_login", DateTime(timezone=True), nullable=True),
 )
 
-auditable_fields = dict(
-    actor_id=Integer, action=String(64), resource_type=String(64), resource_id=String(128),
-    request_id=String(64), ip_address=String(64), metadata=JSON,
-)
+auditable_fields = {
+    "actor_id": Integer, "action": String(64), "resource_type": String(64), "resource_id": String(128),
+    "request_id": String(64), "ip_address": String(64), "metadata": JSON,
+}
 
 audit_events = Table(
     "audit_events", metadata,
@@ -178,7 +192,7 @@ def _add_missing_columns(engine):
     "column already exists" error and fail to start.
     """
     from sqlalchemy import inspect, text
-    from sqlalchemy.exc import ProgrammingError, OperationalError
+    from sqlalchemy.exc import OperationalError, ProgrammingError
     inspector = inspect(engine)
     additions = {
         "advisors": {

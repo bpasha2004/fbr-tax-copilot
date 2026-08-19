@@ -1,8 +1,12 @@
 """Verified provider webhook ingress with replay, deduplication and state-machine enforcement."""
-import hashlib, hmac, json, time
-from typing import Optional
-from fastapi import APIRouter, Request, HTTPException, Header
+import hashlib
+import hmac
+import json
+import time
+
+from fastapi import APIRouter, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
+
 from config.settings import settings
 from src.shared.payment_service import record_provider_event
 
@@ -17,7 +21,7 @@ def _verify_hmac(payload: bytes, signature: str, secret: str) -> bool:
     expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, signature.lower())
 
-def _check_timestamp(ts_str: Optional[str]) -> bool:
+def _check_timestamp(ts_str: str | None) -> bool:
     if not ts_str: return False
     try:
         ts = int(ts_str); now = int(time.time())
@@ -40,7 +44,7 @@ def _process(provider: str, payload: dict, raw: bytes, reference: str | None, am
         raise HTTPException(status_code=409, detail=str(exc))
 
 @router.post("/jazzcash")
-async def jazzcash_webhook(request: Request, x_webhook_signature: Optional[str] = Header(None), x_webhook_timestamp: Optional[str] = Header(None)):
+async def jazzcash_webhook(request: Request, x_webhook_signature: str | None = Header(None), x_webhook_timestamp: str | None = Header(None)):
     body = await request.body(); payload = _verified_payload("jazzcash", body, x_webhook_signature, x_webhook_timestamp)
     ref = payload.get("pp_TxnRefNo") or payload.get("reference")
     status = str(payload.get("pp_ResponseCode") or "")
@@ -48,7 +52,7 @@ async def jazzcash_webhook(request: Request, x_webhook_signature: Optional[str] 
     return JSONResponse({"received": True, **result})
 
 @router.post("/easypaisa")
-async def easypaisa_webhook(request: Request, x_webhook_signature: Optional[str] = Header(None), x_webhook_timestamp: Optional[str] = Header(None)):
+async def easypaisa_webhook(request: Request, x_webhook_signature: str | None = Header(None), x_webhook_timestamp: str | None = Header(None)):
     body = await request.body(); payload = _verified_payload("easypaisa", body, x_webhook_signature, x_webhook_timestamp)
     ref = payload.get("orderRefNum") or payload.get("reference")
     status = str(payload.get("paymentStatus") or "").upper()
@@ -56,7 +60,7 @@ async def easypaisa_webhook(request: Request, x_webhook_signature: Optional[str]
     return JSONResponse({"received": True, **result})
 
 @router.post("/raast")
-async def raast_webhook(request: Request, x_webhook_signature: Optional[str] = Header(None), x_webhook_timestamp: Optional[str] = Header(None)):
+async def raast_webhook(request: Request, x_webhook_signature: str | None = Header(None), x_webhook_timestamp: str | None = Header(None)):
     body = await request.body(); payload = _verified_payload("raast", body, x_webhook_signature, x_webhook_timestamp)
     ref = payload.get("transactionId") or payload.get("reference")
     status = str(payload.get("status") or "").upper()

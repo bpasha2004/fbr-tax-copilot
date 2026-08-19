@@ -3,9 +3,8 @@ Business / Non-Salaried Individual Tax Calculator
 Versioned First Schedule, Part I, Division II rules (2025-26 and 2026-27).
 """
 import dataclasses
-from decimal import Decimal
 
-from rules_engine.core import RulesEngine, TaxInput
+from rules_engine.core import RulesEngine
 from rules_engine.tax_slabs import get_rules_for_year
 from rules_engine.validation import validate_tax_input
 from src.business_tax.documents import BusinessDocumentValidator

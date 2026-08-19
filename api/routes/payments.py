@@ -1,11 +1,19 @@
 """Payment lifecycle endpoints: refunds, chargebacks and reconciliation."""
+from decimal import Decimal
+
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
-from decimal import Decimal
-from src.shared.auth import get_current_advisor, require_role, require_write_access
-from src.shared.payment_service import request_refund, mark_refunded, open_chargeback, resolve_chargeback, reconcile
-from src.shared.models import get_engine, payments
 from sqlalchemy import select
+
+from src.shared.auth import get_current_advisor, require_role, require_write_access
+from src.shared.models import get_engine, payments
+from src.shared.payment_service import (
+    mark_refunded,
+    open_chargeback,
+    reconcile,
+    request_refund,
+    resolve_chargeback,
+)
 
 router = APIRouter(prefix="/api/v1/payments", tags=["payments"])
 

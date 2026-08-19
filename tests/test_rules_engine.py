@@ -1,10 +1,11 @@
-import pytest
 from decimal import Decimal
-from datetime import date
+
+import pytest
+
 from rules_engine.core import RulesEngine, TaxInput, TaxRule
 from rules_engine.tax_slabs import SALARIED_2025_26
- 
- 
+from rules_engine.validation import ValidationError, validate_tax_input
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
  
 def get_verified_slabs() -> list[TaxRule]:
@@ -118,7 +119,7 @@ def test_unverified_rule_raises():
     engine = RulesEngine(SALARIED_2025_26)  # ca_verified=False
     with pytest.raises(ValueError, match="CA verified"):
         engine.calculate(TaxInput(
-            annual_income=Decimal("1000000"),
+            annual_income=Decimal(1000000),
             taxpayer_type="salaried",
             tax_year="2025-26"
         ))
@@ -129,7 +130,7 @@ def test_unknown_taxpayer_type_raises():
     engine = make_engine()
     with pytest.raises(ValueError, match="No rule found"):
         engine.calculate(TaxInput(
-            annual_income=Decimal("1000000"),
+            annual_income=Decimal(1000000),
             taxpayer_type="unknown_type",
             tax_year="2025-26"
         ))
@@ -140,7 +141,7 @@ def test_unknown_tax_year_raises():
     engine = make_engine()
     with pytest.raises(ValueError, match="No rule found"):
         engine.calculate(TaxInput(
-            annual_income=Decimal("1000000"),
+            annual_income=Decimal(1000000),
             taxpayer_type="salaried",
             tax_year="2099-00"
         ))
@@ -152,20 +153,18 @@ def test_result_contains_audit_trail():
     """Every result must contain calculation steps."""
     engine = make_engine()
     result = engine.calculate(TaxInput(
-        annual_income=Decimal("1000000"),
+        annual_income=Decimal(1000000),
         taxpayer_type="salaried",
         tax_year="2025-26"
     ))
     assert len(result.calculation_steps) > 0
     assert result.source_document == "Finance Act 2025"
     assert result.ca_verified is True
- 
+
+
  
 # ── Validation tests ──────────────────────────────────────────────────────────
- 
-from rules_engine.validation import validate_tax_input, ValidationError
- 
- 
+
 def test_validation_accepts_valid_input():
     result = validate_tax_input(1000000, "salaried", "2025-26")
     assert result.annual_income == Decimal("1000000.00")

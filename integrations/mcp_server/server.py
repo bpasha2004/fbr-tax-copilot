@@ -2,10 +2,11 @@
 Run: python -m mcp.server
 """
 from mcp.server.fastmcp import FastMCP
-from src.salary_tax.calculator import SalaryTaxCalculator
+
 from config.settings import settings
 from src.business_tax.calculator import BusinessTaxCalculator
 from src.freelance_tax.calculator import FreelanceTaxCalculator
+from src.salary_tax.calculator import SalaryTaxCalculator
 
 mcp=FastMCP("FBR Tax Copilot")
 

@@ -1,5 +1,5 @@
-from rag.vector_store import get_vector_store
 from rag.base import RetrievalResult
+from rag.vector_store import get_vector_store
 
 CONFIDENCE_THRESHOLD = 0.72
 
@@ -168,8 +168,8 @@ class FBRRetriever:
         self,
         query: str,
         top_k: int = 5,
-        taxpayer_type: str = None,
-        tax_year: str = None,
+        taxpayer_type: str | None = None,
+        tax_year: str | None = None,
     ) -> dict:
         search_query  = self._build_search_query(query, taxpayer_type, tax_year)
         where_filter  = self._build_where_filter(taxpayer_type, tax_year)
@@ -179,7 +179,7 @@ class FBRRetriever:
         if tax_year in REQUIRED_CURRENT_DOCS:
             try:
                 indexed_names = self.store.get_document_names()
-            except Exception:
+            except (OSError, RuntimeError, ValueError):
                 indexed_names = []
             if not _has_required_current_source(indexed_names, tax_year):
                 return {
@@ -224,8 +224,8 @@ class FBRRetriever:
         self,
         query: str,
         top_k: int = 3,
-        taxpayer_type: str = None,
-        tax_year: str = None,
+        taxpayer_type: str | None = None,
+        tax_year: str | None = None,
     ) -> str:
         result = self.retrieve(
             query=query,

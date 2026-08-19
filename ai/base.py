@@ -19,4 +19,3 @@ class AIProvider(ABC):
         and explains it in plain language.
         Never calculates — only explains.
         """
-        pass

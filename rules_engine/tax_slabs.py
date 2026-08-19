@@ -3,11 +3,11 @@
 The source of truth is rules_engine/rules/*.json. No calculator should embed
 2025/2026 slabs directly in application code.
 """
-from dataclasses import replace
-from decimal import Decimal
-from datetime import date
 import json
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
+
 from rules_engine.core import TaxRule
 
 RULES_DIR = Path(__file__).resolve().parent / "rules"

@@ -1,16 +1,32 @@
 """Repository quality gate used locally and in CI."""
+from __future__ import annotations
+
+import subprocess
+import sys
 from pathlib import Path
-import subprocess, sys
 
-def run(cmd):
-    print("$", " ".join(cmd)); return subprocess.run(cmd, check=False).returncode
 
-if run([sys.executable, "-m", "compileall", "-q", "."]): sys.exit(1)
-if run([sys.executable, "-m", "pytest", "-q"]): sys.exit(1)
-try:
+def run(cmd: list[str]) -> None:
+    print("$", " ".join(cmd), flush=True)
+    result = subprocess.run(cmd, check=False)
+    if result.returncode:
+        raise SystemExit(result.returncode)
+
+
+def main() -> None:
+    run([sys.executable, "-m", "ruff", "check", "."])
+    run([sys.executable, "-m", "compileall", "-q", "."])
+    run([sys.executable, "-m", "pytest", "-q"])
+    run([sys.executable, "-m", "eval.run"])
+
     import yaml
-    yaml.safe_load(Path("docker-compose.yml").read_text())
+
+    yaml.safe_load(Path("docker-compose.yml").read_text(encoding="utf-8"))
     print("docker-compose.yml: YAML OK")
-except ImportError:
-    print("PyYAML not installed; compose YAML check skipped")
-print("QUALITY GATE: PASS")
+
+    run([sys.executable, "-m", "pip_audit", "-r", "requirements.txt"])
+    print("QUALITY GATE: PASS")
+
+
+if __name__ == "__main__":
+    main()

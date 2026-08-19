@@ -1,23 +1,23 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Response, Request
+
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from api.routes.health import router as health_router
-from api.routes.tax import router as tax_router
-from api.routes.clients import router as clients_router
-from api.routes.auth import router as auth_router
-from api.routes.rag import router as rag_router
-from api.routes.audit import router as audit_router
-from api.routes.payments import router as payments_router
 from api.middleware.auth import APIKeyMiddleware
-from api.middleware.security import SecurityMiddleware
 from api.middleware.hmac_webhook import router as webhooks_router
+from api.middleware.security import SecurityMiddleware
+from api.routes.audit import router as audit_router
+from api.routes.auth import router as auth_router
+from api.routes.clients import router as clients_router
+from api.routes.health import router as health_router
+from api.routes.payments import router as payments_router
+from api.routes.rag import router as rag_router
+from api.routes.tax import router as tax_router
 from config.settings import settings
 from src.shared.models import init_db
-from observability.metrics import inc, observe
 
 
 @asynccontextmanager

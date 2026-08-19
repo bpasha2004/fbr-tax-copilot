@@ -6,7 +6,9 @@ Production RAG should use Ollama embeddings for semantic quality.
 import hashlib
 import math
 import re
+
 import httpx
+
 from config.settings import settings
 
 

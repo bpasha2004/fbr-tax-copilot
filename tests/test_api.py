@@ -3,8 +3,9 @@ API smoke tests. Confirms the app boots, routes are wired correctly,
 and the RAG endpoint's confidence-gate contract holds at the HTTP layer
 (not just inside the retriever unit tests).
 """
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 
 from api.main import app

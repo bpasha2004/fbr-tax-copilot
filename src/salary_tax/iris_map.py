@@ -93,7 +93,7 @@ def build_iris_output(audit_record: dict) -> list[dict]:
     """
     income    = float(audit_record.get("annual_income", 0))
     tax       = float(audit_record.get("tax_payable", 0))
-    section   = audit_record.get("source_section", "")
+    audit_record.get("source_section", "")
 
     exempt = min(income * 0.25, 840_000)
     net_taxable = income - exempt

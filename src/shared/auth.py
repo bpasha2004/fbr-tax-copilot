@@ -17,16 +17,15 @@ import json
 import os
 import secrets
 import time
+from datetime import datetime, timezone
 from urllib.parse import urlencode
-from datetime import datetime, timezone, timedelta
-from typing import Optional
 
 import httpx
+from sqlalchemy import and_, select
+from sqlalchemy.exc import SQLAlchemyError
 
 from config.settings import settings
-from sqlalchemy import select
-from src.shared.models import get_engine, advisors, sessions, oauth_states
-from sqlalchemy import and_
+from src.shared.models import advisors, get_engine, oauth_states, sessions
 
 # ── Google OIDC constants ─────────────────────────────────────────────────────
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
@@ -46,7 +45,7 @@ def _sign_token(payload: str, secret: str) -> str:
     return f"{payload}.{sig}"
 
 
-def _verify_token(token: str, secret: str) -> Optional[dict]:
+def _verify_token(token: str, secret: str) -> dict | None:
     parts = token.rsplit(".", 1)
     if len(parts) != 2:
         return None
@@ -56,7 +55,7 @@ def _verify_token(token: str, secret: str) -> Optional[dict]:
         return None
     try:
         return json.loads(payload_str)
-    except Exception:
+    except (json.JSONDecodeError, TypeError):
         return None
 
 
@@ -95,7 +94,7 @@ def create_session_token(advisor_id: int, email: str, ttl_hours: int | None = No
     return token
 
 
-def decode_session_token(token: str) -> Optional[dict]:
+def decode_session_token(token: str) -> dict | None:
     data = _verify_token(token, settings.SECRET_KEY)
     if not data:
         return None
@@ -210,7 +209,7 @@ def verify_totp(secret: str, code: str) -> bool:
 
 # ── FastAPI dependency ────────────────────────────────────────────────────────
 
-def get_current_advisor(token: str) -> Optional[dict]:
+def get_current_advisor(token: str) -> dict | None:
     """
     Decode the signed session token and verify the advisor still exists and is active.
     Returns None if the token is invalid, expired, or the account is inactive.
@@ -230,7 +229,7 @@ def get_current_advisor(token: str) -> Optional[dict]:
             if not session_row or session_row["revoked"] or _as_utc(session_row["expires_at"]) < datetime.now(timezone.utc):
                 return None
             row = conn.execute(select(advisors).where(advisors.c.id == advisor_id)).mappings().first()
-    except Exception:
+    except (SQLAlchemyError, OSError):
         return None
 
     if not row or not row.get("active", False):

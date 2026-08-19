@@ -1,6 +1,6 @@
+from config.settings import settings
 from rag.base import BaseVectorStore, DocumentChunk, RetrievalResult
 from rag.embeddings import embed_text_sync
-from config.settings import settings
 
 
 class ChromaVectorStore(BaseVectorStore):
@@ -33,7 +33,7 @@ class ChromaVectorStore(BaseVectorStore):
         try:
             self.client.get_collection(name)
             return True
-        except Exception:
+        except (KeyError, RuntimeError, ValueError):
             return False
 
     def add_chunks(self, chunks: list[DocumentChunk]) -> None:
@@ -76,7 +76,7 @@ class ChromaVectorStore(BaseVectorStore):
         self,
         query: str,
         top_k: int = 5,
-        where_filter: dict = None,
+        where_filter: dict | None = None,
     ) -> list[RetrievalResult]:
         """
         Search the vector store for chunks relevant to query.

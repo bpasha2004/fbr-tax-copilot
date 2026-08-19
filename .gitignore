@@ -35,3 +35,9 @@ htmlcov/
 .vscode/
 .idea/
 .DS_Store
+# Frontend local/runtime artifacts
+frontend/node_modules/
+frontend/.env.local
+frontend/.output/
+frontend/.wrangler/
+frontend/.tanstack/

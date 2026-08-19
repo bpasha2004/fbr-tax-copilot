@@ -5,6 +5,7 @@ Usage: python ingest_documents.py
 Drop PDFs into data/documents/fbr/ before running.
 """
 import sys
+
 from rag.ingestor import ingest_directory
 
 if __name__ == "__main__":

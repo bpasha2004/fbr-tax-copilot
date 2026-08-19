@@ -1,17 +1,16 @@
 """Security hardening middleware: distributed rate limits, payload limits, headers and request telemetry."""
+import hashlib
 import json
 import re
-import time
-import hashlib
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from api.middleware.ratelimit import RATE_LIMIT_WINDOW, check_rate_limit
 from config.settings import settings
-from api.middleware.ratelimit import check_rate_limit, RATE_LIMIT_WINDOW
-from observability.events import request_id, emit, Timer
+from observability.events import Timer, emit, request_id
 
 MAX_PAYLOAD_BYTES = settings.MAX_PAYLOAD_BYTES
 _XSS_PATTERNS = re.compile(r"(<\s*script|javascript\s*:|on\w+\s*=|<\s*iframe|<\s*object|<\s*embed|expression\s*\(|vbscript\s*:|data\s*:\s*text/html)", re.IGNORECASE)

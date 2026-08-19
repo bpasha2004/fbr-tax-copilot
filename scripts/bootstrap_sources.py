@@ -1,7 +1,10 @@
 """Fetch and integrity-check authoritative current-year FBR sources."""
+import hashlib
+import time
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-import hashlib, time
+
 from config.settings import settings
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,9 +38,10 @@ def fetch(tax_year: str, name: str, url: str) -> None:
             _verify(target, expected)
             print(f"Fetched and verified: {target.name} ({target.stat().st_size:,} bytes)")
             return
-        except Exception:
+        except (HTTPError, URLError, OSError, RuntimeError, ValueError):
             target.unlink(missing_ok=True)
-            if attempt == 3: raise
+            if attempt == 3:
+                raise
             time.sleep(attempt * 2)
 
 for tax_year, (name, url) in SOURCES.items():

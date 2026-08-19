@@ -3,29 +3,28 @@ Authentication Routes — Gmail OIDC + TOTP
 Zero external cost. Google Sign-In is free for all users.
 TOTP uses Google Authenticator (no SMS, no cost).
 """
-import secrets
-from fastapi import APIRouter, HTTPException, Header
-from fastapi.responses import RedirectResponse
-from pydantic import BaseModel, Field
-from typing import Optional
-
-from src.shared.auth import (
-    build_google_auth_url,
-    exchange_google_code,
-    create_session_token,
-    get_current_advisor,
-    generate_totp_secret,
-    get_totp_qr_url,
-    verify_totp,
-    create_oauth_state,
-    verify_oauth_state,
-    revoke_session,
-    GOOGLE_CLIENT_ID,
-)
-from src.shared.models import init_db, get_engine, advisors
-from sqlalchemy import select, insert, update
 from datetime import datetime, timezone
+
+import httpx
+from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel, Field
+from sqlalchemy import insert, select, update
+
 from config.settings import settings
+from src.shared.auth import (
+    GOOGLE_CLIENT_ID,
+    build_google_auth_url,
+    create_oauth_state,
+    create_session_token,
+    exchange_google_code,
+    generate_totp_secret,
+    get_current_advisor,
+    get_totp_qr_url,
+    revoke_session,
+    verify_oauth_state,
+    verify_totp,
+)
+from src.shared.models import advisors, get_engine, init_db
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
@@ -129,8 +128,8 @@ async def google_callback(code: str, state: str):
 
     try:
         google_user = await exchange_google_code(code)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Google authentication failed.")
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        raise HTTPException(status_code=400, detail="Google authentication failed.") from None
 
     init_db()
     advisor = _get_or_create_advisor(google_user)

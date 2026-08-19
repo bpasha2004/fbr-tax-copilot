@@ -1,6 +1,7 @@
 import re
 from decimal import Decimal, InvalidOperation
 
+
 def citation_accuracy(answer: str, allowed_citations: list[str]) -> float:
     if not allowed_citations: return 0.0
     found=re.findall(r"\[([^\]]+)\]",answer)

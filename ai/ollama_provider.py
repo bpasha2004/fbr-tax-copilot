@@ -4,8 +4,10 @@ Outputs: IRIS 2.0 portal field entries, legal clause references, compliance flag
 This is a tool for Pakistani Tax Advisors, not end consumers.
 """
 import re
-import httpx
 from decimal import Decimal
+
+import httpx
+
 from ai.base import AIProvider
 from config.settings import settings
 
@@ -92,7 +94,7 @@ def _build_slab_table(taxpayer_type: str, tax_year: str) -> str:
                     f"PKR {fixed:,} fixed + {rate:.0f}% of excess over PKR {min_val:,}"
                 )
         return "\n".join(lines) if lines else "[Slab table unavailable]"
-    except Exception as e:
+    except (AttributeError, TypeError, ValueError) as e:
         return f"[Slab table error: {e}]"
 
 
@@ -199,8 +201,8 @@ class OllamaProvider(AIProvider):
         language: str = "english",
         dev_mode: bool = False,
     ) -> dict:
-        from rag.retriever import FBRRetriever
         from ai.safety import validate_llm_output
+        from rag.retriever import FBRRetriever
         retriever = FBRRetriever()
 
         taxpayer_type = audit_record.get("taxpayer_type", "salaried")
@@ -343,7 +345,7 @@ class OllamaProvider(AIProvider):
                 elif hallucination_detected:
                     formatted_explanation = ""
 
-        except Exception as e:
+        except (httpx.HTTPError, ValueError, TypeError, KeyError) as e:
             print(f"[OllamaProvider] LLM call failed: {e}")
 
         figure_valid = _validate_figures(formatted_explanation, audit_record) if formatted_explanation else False

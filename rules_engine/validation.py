@@ -1,10 +1,10 @@
 from decimal import Decimal, InvalidOperation
-from rules_engine.core import TaxInput
 
+from rules_engine.core import TaxInput
 
 SUPPORTED_TAXPAYER_TYPES = {"salaried", "business", "individual", "company", "freelance"}
 SUPPORTED_TAX_YEARS = {"2025-26", "2026-27"}
-MAX_INCOME = Decimal("1000000000")  # 1 billion PKR ceiling
+MAX_INCOME = Decimal(1000000000)  # 1 billion PKR ceiling
 
 
 class ValidationError(ValueError):
@@ -17,11 +17,10 @@ class ValidationError(ValueError):
     income, unsupported tax year, etc.) bypassed every route's error
     handling and surfaced as raw 500s instead of clean 422 responses.
     """
-    pass
 
 
 def validate_tax_input(
-    annual_income: str | int | float | Decimal,
+    annual_income: str | float | Decimal,
     taxpayer_type: str,
     tax_year: str,
 ) -> TaxInput:
@@ -56,7 +55,7 @@ def validate_tax_input(
             f"Income must be a finite number. Got: {annual_income}"
         )
 
-    if income < Decimal("0"):
+    if income < Decimal(0):
         raise ValidationError(
             f"Income cannot be negative. Got: {income}"
         )

@@ -4,9 +4,14 @@ Provides advisor-scoped client management operations on the SQLite schema.
 One advisor → N clients. Each client has full calculation history.
 """
 from datetime import datetime, timezone
-from typing import Optional
-from sqlalchemy import select, insert, update, delete
-from src.shared.models import get_engine, init_db, advisors, clients, tax_calculations, payments
+
+from sqlalchemy import insert, select, update
+
+from src.shared.models import (
+    clients,
+    get_engine,
+    tax_calculations,
+)
 
 
 class AdvisorDashboard:
@@ -30,7 +35,7 @@ class AdvisorDashboard:
             rows = conn.execute(q).mappings().all()
             return [dict(r) for r in rows]
 
-    def get_client(self, client_id: int) -> Optional[dict]:
+    def get_client(self, client_id: int) -> dict | None:
         """Get a single client (enforces advisor ownership)."""
         with self.engine.connect() as conn:
             q = select(clients).where(
@@ -45,12 +50,12 @@ class AdvisorDashboard:
         full_name: str,
         taxpayer_type: str,
         tax_year: str = "2026-27",
-        cnic: str = None,
-        ntn: str = None,
-        email: str = None,
-        phone: str = None,
-        annual_income: float = None,
-        notes: str = None,
+        cnic: str | None = None,
+        ntn: str | None = None,
+        email: str | None = None,
+        phone: str | None = None,
+        annual_income: float | None = None,
+        notes: str | None = None,
     ) -> int:
         """Create a new client profile. Returns new client_id."""
         with self.engine.begin() as conn:

@@ -5,11 +5,16 @@ API contract. A live adapter is enabled only when its official endpoint/credenti
 are supplied through configuration.
 """
 from __future__ import annotations
-from datetime import datetime, timezone, timedelta
+
+import hashlib
+import json
+import uuid
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-import hashlib, json, uuid
-from sqlalchemy import select, insert, update
-from src.shared.models import get_engine, payments, payment_events, audit_reconciliation
+
+from sqlalchemy import insert, select, update
+
+from src.shared.models import audit_reconciliation, get_engine, payment_events, payments
 
 PAYMENT_STATES = {"created", "pending", "succeeded", "failed", "expired", "refunded", "chargeback"}
 ALLOWED_TRANSITIONS = {
@@ -184,7 +189,7 @@ def reconcile(provider: str, provider_records: list[dict]) -> dict:
             if payment["reference"] not in provider_refs:
                 missing_provider += 1
                 details.append({"reference": payment["reference"], "status": "MISSING_PROVIDER"})
-        result = conn.execute(insert(audit_reconciliation).values(
+        conn.execute(insert(audit_reconciliation).values(
             provider=provider, run_reference=run_reference, matched=matched, amount_mismatch=amount_mismatch,
             missing_internal=missing_internal, missing_provider=missing_provider, duplicate=duplicate, created_at=_now(), details=details,
         ))

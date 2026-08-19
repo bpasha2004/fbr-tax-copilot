@@ -11,7 +11,7 @@ Supported methods:
 
 """
 from dataclasses import dataclass
-from typing import Optional
+
 from config.settings import settings
 
 
@@ -23,7 +23,7 @@ class PaymentRoute:
     amount_pkr: float
     reference: str
     instructions: str
-    qr_payload: Optional[str] = None
+    qr_payload: str | None = None
 
 
 # ── Configured payment destinations ───────────────────────────────────────────
@@ -69,7 +69,7 @@ class PaymentRouter:
         amount_pkr: float,
         client_type: str,
         reference: str,
-        preferred_method: Optional[str] = None,
+        preferred_method: str | None = None,
     ) -> list[PaymentRoute]:
         if amount_pkr <= 0:
             raise ValueError("amount_pkr must be greater than zero")

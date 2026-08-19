@@ -3,21 +3,21 @@ Tax API Routes — B2B Co-Pilot Endpoints
 Covers: salaried, freelance (Sec. 154A), business (Division II)
 All responses include IRIS 2.0 portal field entries and document checklists.
 """
+from math import isfinite
+
 import httpx
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field, field_validator
-from typing import Optional
-from math import isfinite
+from pydantic import BaseModel, Field
 
 from ai.ollama_provider import get_ai_provider
 from config.settings import settings
+from src.business_tax.calculator import BusinessTaxCalculator
+from src.freelance_tax.calculator import FreelanceTaxCalculator
 
 # Feature calculators — each wraps the shared RulesEngine with its own
 # document validation and IRIS output mapping (imported inside the
 # calculator classes themselves, not needed directly here).
 from src.salary_tax.calculator import SalaryTaxCalculator
-from src.freelance_tax.calculator import FreelanceTaxCalculator
-from src.business_tax.calculator import BusinessTaxCalculator
 
 router = APIRouter(prefix="/api/v1/tax", tags=["tax"])
 
@@ -69,7 +69,7 @@ class TaxExplainRequest(BaseModel):
     taxpayer_type:  str             = Field("salaried")
     tax_year:       str             = Field("2026-27")
     documents:      list[str]       = Field(default_factory=list, max_length=50)
-    user_question:  Optional[str]   = Field("Provide IRIS 2.0 filing entries and compliance flags.", max_length=2000)
+    user_question:  str | None   = Field("Provide IRIS 2.0 filing entries and compliance flags.", max_length=2000)
     language:       str             = Field("english", max_length=30)
     dev_mode:       bool            = Field(False)
 
@@ -89,7 +89,7 @@ class FreelanceExplainRequest(BaseModel):
     pseb_registered: bool = True
     tax_year:       str             = Field("2026-27")
     documents:      list[str]       = Field(default_factory=list, max_length=50)
-    user_question:  Optional[str]   = Field("Provide IRIS 2.0 entries for Section 154A filing.", max_length=2000)
+    user_question:  str | None   = Field("Provide IRIS 2.0 entries for Section 154A filing.", max_length=2000)
     language:       str             = Field("english", max_length=30)
     dev_mode:       bool            = Field(False)
 
@@ -105,7 +105,7 @@ class BusinessExplainRequest(BaseModel):
     net_business_income: float      = Field(..., examples=[3600000.0])
     tax_year:       str             = Field("2026-27")
     documents:      list[str]       = Field(default_factory=list, max_length=50)
-    user_question:  Optional[str]   = Field("Provide IRIS 2.0 entries and compliance flags.", max_length=2000)
+    user_question:  str | None   = Field("Provide IRIS 2.0 entries and compliance flags.", max_length=2000)
     language:       str             = Field("english", max_length=30)
     dev_mode:       bool            = Field(False)
 
@@ -285,7 +285,7 @@ async def tax_health():
 
     try:
         rag_chunks = FBRRetriever().store.count()
-    except Exception:
+    except (OSError, RuntimeError, ValueError):
         rag_chunks = None  # vector store unreachable — don't fake a number
 
     try:

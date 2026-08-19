@@ -1,7 +1,6 @@
-from decimal import Decimal, ROUND_HALF_UP
 from dataclasses import dataclass, field
-from typing import Optional
 from datetime import date
+from decimal import ROUND_HALF_UP, Decimal
 
 
 @dataclass
@@ -21,8 +20,8 @@ class TaxRule:
     source_section: str         # e.g. "First Schedule, Part I, Tier 2"
     effective_date: date
     ca_verified: bool = False
-    ca_name: Optional[str] = None
-    ca_verified_date: Optional[date] = None
+    ca_name: str | None = None
+    ca_verified_date: date | None = None
 
 
 @dataclass
@@ -73,7 +72,7 @@ class RulesEngine:
 
         return self._apply_rule(tax_input, rule)
 
-    def _find_rule(self, tax_input: TaxInput) -> Optional[TaxRule]:
+    def _find_rule(self, tax_input: TaxInput) -> TaxRule | None:
         for rule in self.rules:
             if (
                 rule.taxpayer_type == tax_input.taxpayer_type
@@ -99,7 +98,7 @@ class RulesEngine:
                 Decimal("0.0001"), rounding=ROUND_HALF_UP
             )
             if income > 0
-            else Decimal("0")
+            else Decimal(0)
         )
 
         steps = [

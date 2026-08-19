@@ -1,7 +1,6 @@
 """Distributed rate limiting with Redis, plus a safe in-memory fallback for local tests."""
 import collections
 import time
-from typing import Optional
 
 RATE_LIMIT_REQUESTS = 60
 RATE_LIMIT_WINDOW = 60
@@ -27,17 +26,18 @@ def _redis():
         return _redis_client
     try:
         import redis
+
         from config.settings import settings
         if not settings.REDIS_URL:
             return None
         _redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
         _redis_client.ping()
         return _redis_client
-    except Exception:
+    except (ImportError, ValueError, OSError):
         return None
 
 
-def check_rate_limit(identity: str, limit: Optional[int] = None, window: Optional[int] = None, fail_closed: bool = False) -> bool | None:
+def check_rate_limit(identity: str, limit: int | None = None, window: int | None = None, fail_closed: bool = False) -> bool | None:
     limit = limit or RATE_LIMIT_REQUESTS
     window = window or RATE_LIMIT_WINDOW
     r = _redis()
@@ -50,5 +50,5 @@ def check_rate_limit(identity: str, limit: Optional[int] = None, window: Optiona
         if count == 1:
             r.expire(key, window + 2)
         return count <= limit
-    except Exception:
+    except (ImportError, OSError, RuntimeError, ValueError):
         return False if fail_closed else _memory_check(identity)

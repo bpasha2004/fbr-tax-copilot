@@ -6,11 +6,10 @@ collection or an Ollama embedding server — the goal is to verify the
 gating LOGIC (when does the system trust its own retrieval, and when
 does it refuse and escalate), not the embedding model itself.
 """
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from rag.retriever import FBRRetriever, CONFIDENCE_THRESHOLD
 from rag.base import DocumentChunk, RetrievalResult
+from rag.retriever import CONFIDENCE_THRESHOLD, FBRRetriever
 
 
 def make_result(score: float, citation: str = "Financeact2025, S.149, p.4", text: str = "sample chunk text") -> RetrievalResult:

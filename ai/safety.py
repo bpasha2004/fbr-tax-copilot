@@ -1,6 +1,6 @@
 """Independent validation layer for LLM output."""
-from decimal import Decimal, InvalidOperation
 import re
+
 
 def validate_llm_output(answer: str, audit: dict, allowed_citations: list[str]) -> dict:
     if not isinstance(answer,str) or len(answer.strip()) < 40:

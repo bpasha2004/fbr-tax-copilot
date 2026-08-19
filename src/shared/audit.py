@@ -1,9 +1,12 @@
 """Tamper-evident application audit trail with sensitive-field sanitization."""
+import hashlib
+import json
 from datetime import datetime, timezone
-import hashlib, json
+
 from sqlalchemy import insert, select
-from src.shared.models import get_engine, audit_events
+
 from observability.events import sanitize
+from src.shared.models import audit_events, get_engine
 
 
 def record_audit(*, actor_id=None, action: str, resource_type: str, resource_id=None,

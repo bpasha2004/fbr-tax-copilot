@@ -1,18 +1,29 @@
 """IT/ITeS export tax calculator for Section 154A."""
 import dataclasses
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
+
 from rules_engine.core import RulesEngine, TaxInput
 from rules_engine.tax_slabs import get_rules_for_year
 from src.freelance_tax.documents import FreelanceDocumentValidator
 from src.freelance_tax.iris_map import build_iris_output
 
+
 def _validate(value: float, tax_year: str, atl: bool, pseb_registered: bool):
-    try: proceeds=Decimal(str(value))
-    except Exception as exc: raise ValueError("Export proceeds must be a valid number.") from exc
-    if not proceeds.is_finite(): raise ValueError("Export proceeds must be a finite number.")
-    if proceeds < 0: raise ValueError("Export proceeds cannot be negative.")
-    if tax_year not in {"2025-26","2026-27"}: raise ValueError(f"Tax year {tax_year} not supported for Section 154A.")
-    return TaxInput(annual_income=proceeds,taxpayer_type="freelance",tax_year=tax_year)
+    try:
+        proceeds = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ValueError("Export proceeds must be a valid number.") from exc
+    if not proceeds.is_finite():
+        raise ValueError("Export proceeds must be a finite number.")
+    if proceeds < 0:
+        raise ValueError("Export proceeds cannot be negative.")
+    if tax_year not in {"2025-26", "2026-27"}:
+        raise ValueError(f"Tax year {tax_year} not supported for Section 154A.")
+    return TaxInput(
+        annual_income=proceeds,
+        taxpayer_type="freelance",
+        tax_year=tax_year,
+    )
 
 class FreelanceTaxCalculator:
     def __init__(self,tax_year: str="2026-27",dev_mode: bool=False,atl: bool=True,pseb_registered: bool=True):

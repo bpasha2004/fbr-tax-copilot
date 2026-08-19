@@ -1,7 +1,9 @@
-import fitz  # PyMuPDF
 import hashlib
 import re
 from pathlib import Path
+
+import fitz  # PyMuPDF
+
 from rag.base import DocumentChunk
 from rag.vector_store import get_vector_store
 
@@ -68,7 +70,6 @@ def ingest_pdf(
     
     # Stitch all pages into a continuous master text stream with page markers
     full_document_text = ""
-    page_mappings = []
     
     for page in pages:
         full_document_text += f"\n[PAGE_{page['page_number']}_START]\n" + page["text"]
@@ -97,7 +98,7 @@ def ingest_pdf(
         
         if len(clean_text) >= 50:
             all_chunks.append(DocumentChunk(
-                chunk_id=hashlib.sha256(f"{document_name}:{assigned_page}:{chunk_index}:{clean_text}".encode("utf-8")).hexdigest(),
+                chunk_id=hashlib.sha256(f"{document_name}:{assigned_page}:{chunk_index}:{clean_text}".encode()).hexdigest(),
                 document_name=document_name,
                 source_section=source_section,
                 page_number=assigned_page,
@@ -139,7 +140,7 @@ def ingest_directory(documents_dir: str) -> dict:
                 source_section="FBR Document",
             )
             results[doc_name] = {"status": "success", "chunks": count}
-        except Exception as e:
+        except (OSError, RuntimeError, ValueError) as e:
             results[doc_name] = {"status": "error", "error": str(e)}
             print(f"Error ingesting {doc_name}: {e}")
 

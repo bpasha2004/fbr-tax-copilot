@@ -3,9 +3,8 @@ Salary Tax Calculator — Feature slice wrapper around the core RulesEngine.
 Adds IRIS portal output and mandatory document validation.
 """
 import dataclasses
-from decimal import Decimal
 
-from rules_engine.core import RulesEngine, TaxInput
+from rules_engine.core import RulesEngine
 from rules_engine.tax_slabs import get_rules_for_year
 from rules_engine.validation import validate_tax_input
 from src.salary_tax.documents import SalaryDocumentValidator

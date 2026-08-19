@@ -3,18 +3,18 @@ Client Management Routes — Multi-Tenant Agency Dashboard
 Advisor-scoped CRUD for client profiles and calculation history.
 Auth: session token from Authorization header (Bearer).
 """
-from fastapi import APIRouter, HTTPException, Header
-from pydantic import BaseModel, Field
-from typing import Optional, Literal
-from math import isfinite
 import secrets
+from math import isfinite
+from typing import Literal
 
+from fastapi import APIRouter, Header, HTTPException
+from pydantic import BaseModel, Field
+
+from src.shared.audit import record_audit
 from src.shared.auth import get_current_advisor, require_write_access
 from src.shared.dashboard import AdvisorDashboard
-from src.shared.payments import PaymentRouter
-from src.shared.models import init_db
 from src.shared.payment_service import create_payment
-from src.shared.audit import record_audit
+from src.shared.payments import PaymentRouter
 
 router = APIRouter(prefix="/api/v1/clients", tags=["clients"])
 
@@ -35,24 +35,24 @@ class ClientCreate(BaseModel):
     full_name:      str             = Field(..., examples=["Ali Hassan"])
     taxpayer_type:  Literal["salaried", "business", "freelance"] = Field("salaried")
     tax_year:       Literal["2025-26", "2026-27"] = Field("2026-27")
-    cnic:           Optional[str]   = None
-    ntn:            Optional[str]   = None
-    email:          Optional[str]   = None
-    phone:          Optional[str]   = None
-    annual_income:  Optional[float] = Field(None, ge=0, le=1_000_000_000)
-    notes:          Optional[str]   = None
+    cnic:           str | None   = None
+    ntn:            str | None   = None
+    email:          str | None   = None
+    phone:          str | None   = None
+    annual_income:  float | None = Field(None, ge=0, le=1_000_000_000)
+    notes:          str | None   = None
 
 
 class ClientUpdate(BaseModel):
-    full_name:      Optional[str]   = None
-    taxpayer_type:  Optional[Literal["salaried", "business", "freelance"]] = None
-    tax_year:       Optional[Literal["2025-26", "2026-27"]] = None
-    cnic:           Optional[str]   = None
-    ntn:            Optional[str]   = None
-    email:          Optional[str]   = None
-    phone:          Optional[str]   = None
-    annual_income:  Optional[float] = Field(None, ge=0, le=1_000_000_000)
-    notes:          Optional[str]   = None
+    full_name:      str | None   = None
+    taxpayer_type:  Literal["salaried", "business", "freelance"] | None = None
+    tax_year:       Literal["2025-26", "2026-27"] | None = None
+    cnic:           str | None   = None
+    ntn:            str | None   = None
+    email:          str | None   = None
+    phone:          str | None   = None
+    annual_income:  float | None = Field(None, ge=0, le=1_000_000_000)
+    notes:          str | None   = None
 
 
 class SaveCalculationRequest(BaseModel):
@@ -63,9 +63,9 @@ class SaveCalculationRequest(BaseModel):
 class PaymentRouteRequest(BaseModel):
     amount_pkr:     float = Field(..., gt=0, le=10_000_000)
     client_type:    Literal["individual", "firm"] = Field("individual")
-    reference:      Optional[str] = Field(None, max_length=128)
-    preferred:      Optional[str] = None
-    client_id:      Optional[int] = Field(None, gt=0)
+    reference:      str | None = Field(None, max_length=128)
+    preferred:      str | None = None
+    client_id:      int | None = Field(None, gt=0)
     idempotency_key: str = Field(..., min_length=8, max_length=128)
 
 

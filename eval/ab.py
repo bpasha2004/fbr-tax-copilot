@@ -1,6 +1,7 @@
 """Offline A/B experiment: unfiltered lexical retrieval vs routed retrieval."""
 from statistics import mean
-from eval.benchmark import load_cases, _terms
+
+from eval.benchmark import _terms, load_cases
 
 
 def _rank(query, candidates):

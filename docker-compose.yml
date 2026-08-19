@@ -51,7 +51,7 @@ services:
   source-bootstrap:
     profiles: ["setup"]
     build: .
-    env_file: .env
+    env_file: .env.stack
     volumes:
       - ./data/documents:/app/data/documents
     command: python scripts/bootstrap_sources.py
@@ -59,7 +59,7 @@ services:
   rag-ingest:
     profiles: ["setup"]
     build: .
-    env_file: .env
+    env_file: .env.stack
     environment:
       EMBEDDING_PROVIDER: ollama
       OLLAMA_BASE_URL: http://ollama:11434
@@ -76,7 +76,7 @@ services:
 
   api:
     build: .
-    env_file: .env
+    env_file: .env.stack
     environment:
       DEBUG: "false"
       AI_PROVIDER: ollama
@@ -112,7 +112,7 @@ services:
 
   mcp:
     build: .
-    env_file: .env
+    env_file: .env.stack
     environment:
       OLLAMA_BASE_URL: http://ollama:11434
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -133,7 +133,7 @@ services:
     build:
       context: .
       dockerfile: integrations/payment_sandbox/Dockerfile
-    env_file: .env
+    env_file: .env.stack
     environment:
       TARGET_API: http://api:8000
       JAZZCASH_WEBHOOK_SECRET: ${JAZZCASH_WEBHOOK_SECRET:?Set JAZZCASH_WEBHOOK_SECRET in .env.stack}
